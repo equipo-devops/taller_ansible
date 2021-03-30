@@ -1,0 +1,12 @@
+---
+- hosts: 192.168.33.11
+  remote_user: root
+  tasks:
+    - name: instalar apache
+      apt:  name=apache2 state=present
+      notify: "reiniciar servicio web"
+
+  handlers:
+    - name: reiniciar servicio web
+      service:  name=apache2 state=restarted
+      notify: "reiniciar servicio web"

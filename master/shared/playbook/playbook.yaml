@@ -1,0 +1,42 @@
+---
+- hosts: server-lbs
+  remote_user: root
+  tasks:
+
+  - name: Actualizar la caché de repositorios del administrador de paquetes de APT
+    become: true
+    apt:
+      update_cache: true
+
+  - name: Instalar OpenJDK Java
+    become: yes
+    apt:
+      name: "{{ item }}"
+      state: present
+    with_items:
+     openjdk-8-jdk
+
+  
+  - name: Asegúrese de que la clave de repositorio de jenkins apt esté instalada
+    apt_key: url=https://pkg.jenkins.io/debian-stable/jenkins.io.key state=present
+    become: yes
+  
+  - name: Asegúrese de que el repositorio esté configurado
+    apt_repository: repo='deb https://pkg.jenkins.io/debian-stable binary/' state=present
+    become: yes
+
+  - name: Asegúrese de que jenkins este instalado
+    apt: name=jenkins update_cache=yes
+    become: yes
+  
+  - name: Asegúrese que jenkins esta corriendo
+    service: name=jenkins state=started
+
+  - name: Clave inicial Jenkins
+    shell: cat /var/lib/jenkins/secrets/initialAdminPassword
+    changed_when: false
+    register: result
+
+  - name: Imprimir Clave incial Jenkins
+    debug:
+      var: result.stdout
